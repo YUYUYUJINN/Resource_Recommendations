@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resource Recommendations</title>
+    <script>
+        async function fetchData() {
+            const date = document.getElementById("date").value;
+            const namespace = document.getElementById("namespace").value;
+
+            if (!date || !namespace) {
+                alert("날짜와 namespace를 입력하세요.");
+                return;
+            }
+
+            const response = await fetch(`/data?date=${date}&namespace=${namespace}`);
+            const data = await response.json();
+
+            const resultDiv = document.getElementById("results");
+            resultDiv.innerHTML = "";
+
+            if (data.error) {
+                resultDiv.innerHTML = `<p>Error: ${data.error}</p>`;
+            } else {
+                // 표 헤더 생성
+                const table = document.createElement("table");
+                const thead = document.createElement("thead");
+                const headerRow = document.createElement("tr");
+                headerRow.innerHTML = `
+                    <th>Pod</th>
+                    <th>CPU</th>
+                    <th>Memory</th>
+                `;
+                thead.appendChild(headerRow);
+                table.appendChild(thead);
+
+                // 표 본문 생성
+                const tbody = document.createElement("tbody");
+                data.forEach((item) => {
+                    const row = document.createElement("tr");
+                    row.innerHTML = `
+                        <td>${item.pod}</td>
+                        <td>${item.cpu_recommendation}</td>
+                        <td>${item.memory_recommendation}</td>
+                    `;
+                    tbody.appendChild(row);
+                });
+                table.appendChild(tbody);
+
+                resultDiv.appendChild(table);
+            }
+        }
+    </script>
+    <style>
+        table {
+            width: 80%; /* 테이블 너비를 80%로 설정 */
+            max-width: 1000px; /* 최대 너비를 1000px로 제한 */
+            margin: 20px auto; /* 가운데 정렬 */
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f4f4f4;
+        }
+    </style>
+</head>
+<body>
+    <h1>Resource Recommendations</h1>
+    <label for="date">날짜:</label>
+    <input type="date" id="date">
+    <label for="namespace">Namespace:</label>
+    <input type="text" id="namespace">
+    <button onclick="fetchData()">조회</button>
+
+    <hr>
+    <div id="results">
+        <!-- 결과가 표로 표시됩니다 -->
+    </div>
+</body>
+</html>
+
