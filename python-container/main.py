@@ -113,32 +113,21 @@ def main():
         cpu_data = prom_client.query(QUERY_CPU)
         memory_data = prom_client.query(QUERY_MEMORY)
 
-	    # Map data by namespace and pod
+        # Map data by namespace and pod
         cpu_data_map = {f"{item['metric']['namespace']}/{item['metric']['pod']}": item["value"][1] for item in cpu_data}
         memory_data_map = {f"{item['metric']['namespace']}/{item['metric']['pod']}": item["value"][1] for item in memory_data}
-        
+
+        # Process and Save Recommendations
         for key in cpu_data_map.keys() & memory_data_map.keys():
             namespace, pod = key.split("/")
+
+            # Apply Minimum Recommendations
             cpu_recommendation = max(float(cpu_data_map[key]), 0.05)
             memory_recommendation = max(float(memory_data_map[key]) / (1024 ** 3), 0.05)  # Convert bytes to GiB
-        
+
+	    # Save to DB
             db_client.save_recommendation(namespace, pod, cpu_recommendation, memory_recommendation)
             print(f"Saved recommendation for {namespace}/{pod}: CPU={cpu_recommendation}, Memory={memory_recommendation} GiB")
-			
-#       # Process and Save Recommendations
-#       for cpu_entry, mem_entry in zip(cpu_data, memory_data):
-#           namespace = cpu_entry["metric"].get("namespace", "unknown")
-#           pod = cpu_entry["metric"].get("pod", "unknown")
-#           cpu_recommendation = float(cpu_entry["value"][1])
-#           memory_recommendation = float(mem_entry["value"][1]) / (1024 ** 3)  # Convert to GiB
-#
-#           # Apply Minimum Recommendations
-#           cpu_recommendation = max(cpu_recommendation, 0.5)
-#           memory_recommendation = max(memory_recommendation, 0.5)
-#
-#           # Save to DB
-#           db_client.save_recommendation(namespace, pod, cpu_recommendation, memory_recommendation)
-#           print(f"Saved recommendation for {namespace}/{pod}: CPU={cpu_recommendation}, Memory={memory_recommendation} GiB")
 
     finally:
         db_client.close()
