@@ -93,6 +93,10 @@ def main():
         rate(container_cpu_usage_seconds_total{namespace!~'.*openshift.*'}[1m])
     )[1w:5m]) * on (namespace, pod) group_left() kube_pod_status_phase{phase="Running"}
     """
+    # Test
+    # curl -k https://prometheus-k8s-openshift-monitoring.apps.cluster01.okd.openclab.com/api/v1/query 
+    # --data-urlencode 'query=quantile_over_time(0.95, max by (namespace, pod) (container_memory_usage_bytes{namespace!~".*openshift.*"})[1w:5m])' 
+    # -u internal:MqXY...
     QUERY_MEMORY = """
     quantile_over_time(0.95, max by (namespace, pod) (
         container_memory_usage_bytes{namespace!~'.*openshift.*'}
